@@ -15,11 +15,11 @@
         {% if event.status == 'finished' %}
         <div class="video-wrapper">
             <h2>Original Recording</h2>
-            <video id="video-recording" src="/{{ event.video_path }}" controls width="480"></video>
+            <video id="video-recording" src="{{ url_for('static', filename='recordings/' + event.id + '.avi') }}" controls width="480"></video>
         </div>
         <div class="video-wrapper">
             <h2>Highlighted Recording</h2>
-            <video id="highlight-recording" src="/{{ event.highlight_path }}" controls width="480"></video>
+            <video id="highlight-recording" src="{{ url_for('static', filename='recordings/' + event.id + '_highlight.avi') }}" controls width="480"></video>
         </div>
         {% else %}
         <div class="video-wrapper">

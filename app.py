@@ -14,8 +14,8 @@ app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
 
 # Create directories if they don't exist
-if not os.path.exists('recordings'):
-    os.makedirs('recordings')
+if not os.path.exists('static/recordings'):
+    os.makedirs('static/recordings')
 if not os.path.exists('static/thumbnails'):
     os.makedirs('static/thumbnails')
 
@@ -52,10 +52,6 @@ def view_event_page(event_id):
     if not event:
         return "Event not found", 404
     return render_template('view.html', event=event)
-
-@app.route('/recordings/<filename>')
-def serve_recording(filename):
-    return send_from_directory('recordings', filename)
 
 @socketio.on('frame')
 def handle_frame(message):
@@ -123,8 +119,8 @@ def handle_frame(message):
             event_id = f"{camera_name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             cam['event_id'] = event_id
 
-            video_path = f"recordings/{event_id}.avi"
-            highlight_path = f"recordings/{event_id}_highlight.avi"
+            video_path = f"static/recordings/{event_id}.avi"
+            highlight_path = f"static/recordings/{event_id}_highlight.avi"
 
             fourcc = cv2.VideoWriter_fourcc(*'XVID')
             cam['video_writer'] = cv2.VideoWriter(video_path, fourcc, 10.0, (frame.shape[1], frame.shape[0]))
@@ -152,8 +148,6 @@ def handle_frame(message):
                 'id': event_id,
                 'camera_name': camera_name,
                 'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                'video_path': video_path,
-                'highlight_path': highlight_path,
                 'status': 'recording'
             }
             events.insert(0, new_event)
