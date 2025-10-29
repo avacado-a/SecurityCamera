@@ -123,10 +123,10 @@ def handle_frame(message):
             event_id = f"{camera_name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             cam['event_id'] = event_id
 
-            video_path = f"recordings/{event_id}.mp4"
-            highlight_path = f"recordings/{event_id}_highlight.mp4"
+            video_path = f"recordings/{event_id}.avi"
+            highlight_path = f"recordings/{event_id}_highlight.avi"
 
-            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            fourcc = cv2.VideoWriter_fourcc(*'XVID')
             cam['video_writer'] = cv2.VideoWriter(video_path, fourcc, 10.0, (frame.shape[1], frame.shape[0]))
             cam['highlight_writer'] = cv2.VideoWriter(highlight_path, fourcc, 10.0, (frame.shape[1], frame.shape[0]))
 
