@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Camera Setup</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Camera Setup</h1>
+    <video id="video" width="640" height="480" autoplay></video>
+    <br>
+    <input type="text" id="camera-name" placeholder="Enter camera name">
+    <button id="start-stream">Start Streaming</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const video = document.getElementById('video');
+            const cameraNameInput = document.getElementById('camera-name');
+            const startStreamButton = document.getElementById('start-stream');
+            const socket = io();
+
+            let stream;
+
+            // Get access to the webcam
+            navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+                .then(s => {
+                    stream = s;
+                    video.srcObject = stream;
+                })
+                .catch(err => {
+                    console.error("Error accessing webcam: ", err);
+                    alert('Could not access webcam. Please allow camera access and try again.');
+                });
+
+            startStreamButton.addEventListener('click', () => {
+                const cameraName = cameraNameInput.value.trim();
+                if (!cameraName) {
+                    alert('Please enter a name for the camera.');
+                    return;
+                }
+                if (!stream) {
+                    alert('Webcam not ready.');
+                    return;
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const context = canvas.getContext('2d');
+
+                setInterval(() => {
+                    if (stream.active) {
+                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        const data = canvas.toDataURL('image/jpeg', 0.5); // Use JPEG with 50% quality
+                        socket.emit('frame', { name: cameraName, data: data });
+                    }
+                }, 100); // Send a frame every 100ms (10 FPS)
+                startStreamButton.disabled = true;
+                cameraNameInput.disabled = true;
+                alert(`Streaming started for camera: ${cameraName}`);
+            });
+        });
+    </script>
+</body>
+</html>

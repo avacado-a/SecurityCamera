@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Notifications</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Notifications</h1>
+    <div id="events">
+        {% for event in events %}
+        <div class="event {{ event.status }}" id="event-{{ event.id }}">
+            <p><strong>{{ event.camera_name }}</strong> - {{ event.timestamp }}</p>
+            <p>Status: <span class="status">{{ event.status }}</span></p>
+            <a href="/view/{{ event.id }}">View Event</a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const socket = io();
+            const eventsDiv = document.getElementById('events');
+
+            socket.on('new_event', (event) => {
+                const eventDiv = document.createElement('div');
+                eventDiv.className = `event ${event.status}`;
+                eventDiv.id = `event-${event.id}`;
+                eventDiv.innerHTML = `
+                    <p><strong>${event.camera_name}</strong> - ${event.timestamp}</p>
+                    <p>Status: <span class="status">${event.status}</span></p>
+                    <a href="/view/${event.id}">View Event</a>
+                `;
+                eventsDiv.prepend(eventDiv);
+            });
+
+            socket.on('event_finished', (data) => {
+                const eventDiv = document.getElementById(`event-${data.id}`);
+                if (eventDiv) {
+                    eventDiv.classList.remove('recording');
+                    eventDiv.classList.add('finished');
+                    eventDiv.querySelector('.status').textContent = 'finished';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

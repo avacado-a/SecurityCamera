@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Event: {{ event.id }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Event Details</h1>
+    <p><strong>Camera:</strong> {{ event.camera_name }}</p>
+    <p><strong>Time:</strong> {{ event.timestamp }}</p>
+    <p><strong>Status:</strong> <span id="status">{{ event.status }}</span></p>
+
+    <div class="video-container">
+        {% if event.status == 'finished' %}
+        <div class="video-wrapper">
+            <h2>Original Recording</h2>
+            <video id="video-recording" src="/{{ event.video_path }}" controls width="480"></video>
+        </div>
+        <div class="video-wrapper">
+            <h2>Highlighted Recording</h2>
+            <video id="highlight-recording" src="/{{ event.highlight_path }}" controls width="480"></video>
+        </div>
+        {% else %}
+        <div class="video-wrapper">
+            <h2>Recording in progress...</h2>
+            <p>The full recording will be available here once the motion event is complete.</p>
+        </div>
+        {% endif %}
+        <div class="video-wrapper">
+            <h2>Live Feed</h2>
+            <img id="live-feed" width="480" alt="Live feed from {{ event.camera_name }}">
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const socket = io();
+            const liveFeedImg = document.getElementById('live-feed');
+            const statusSpan = document.getElementById('status');
+            const cameraName = "{{ event.camera_name }}";
+
+            socket.on('live_feed', (data) => {
+                if (data.name === cameraName) {
+                    liveFeedImg.src = 'data:image/jpeg;base64,' + data.data;
+                }
+            });
+
+            socket.on('event_finished', (data) => {
+                if (data.id === "{{ event.id }}") {
+                    statusSpan.textContent = 'finished';
+                    // Reload the page to show the video players
+                    window.location.reload();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
