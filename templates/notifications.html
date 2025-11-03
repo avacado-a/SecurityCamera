@@ -23,7 +23,31 @@
             const socket = io();
             const eventsDiv = document.getElementById('events');
 
+            // Request notification permission on page load
+            if ('Notification' in window) {
+                if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === 'granted') {
+                            console.log('Notification permission granted.');
+                        } else {
+                            console.log('Notification permission denied.');
+                        }
+                    });
+                }
+            }
+
             socket.on('new_event', (event) => {
+                // Show a browser notification
+                if (Notification.permission === 'granted') {
+                    const notificationTitle = `Motion Detected on ${event.camera_name}`;
+                    const notificationBody = `Event at ${event.timestamp}. Click to view.`;
+                    const notification = new Notification(notificationTitle, { body: notificationBody });
+
+                    notification.onclick = () => {
+                        window.open(`/view/${event.id}`, '_blank');
+                    };
+                }
+
                 const eventDiv = document.createElement('div');
                 eventDiv.className = `event ${event.status}`;
                 eventDiv.id = `event-${event.id}`;
