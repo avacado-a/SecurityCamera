@@ -54,6 +54,10 @@ def view_event_page(event_id):
         return "Event not found", 404
     return render_template('view.html', event=event)
 
+@app.route('/recordings/<filename>')
+def serve_recording(filename):
+    return send_from_directory('static/recordings', filename)
+
 @socketio.on('frame')
 def handle_frame(message):
     camera_name = message['name']
@@ -121,10 +125,10 @@ def handle_frame(message):
                 event_id = f"{camera_name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
                 cam['event_id'] = event_id
 
-                video_path = f"static/recordings/{event_id}.avi"
-                highlight_path = f"static/recordings/{event_id}_highlight.avi"
+                video_path = f"static/recordings/{event_id}.webm"
+                highlight_path = f"static/recordings/{event_id}_highlight.webm"
 
-                fourcc = cv2.VideoWriter_fourcc(*'XVID')
+                fourcc = cv2.VideoWriter_fourcc(*'VP80')
                 cam['video_writer'] = cv2.VideoWriter(video_path, fourcc, 10.0, (frame.shape[1], frame.shape[0]))
                 cam['highlight_writer'] = cv2.VideoWriter(highlight_path, fourcc, 10.0, (frame.shape[1], frame.shape[0]))
 
@@ -150,6 +154,8 @@ def handle_frame(message):
                     'id': event_id,
                     'camera_name': camera_name,
                     'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'video_path': video_path,
+                'highlight_path': highlight_path,
                     'status': 'recording'
                 }
                 events.insert(0, new_event)
